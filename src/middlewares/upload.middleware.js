@@ -1,7 +1,7 @@
-import multer from 'multer';
-import path from 'path';
-import crypto from 'crypto';
-import { fileURLToPath } from 'url';
+import multer from "multer";
+import path from "path";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
 
 /**
  * TODO: Configure multer for image uploads
@@ -33,3 +33,28 @@ import { fileURLToPath } from 'url';
  */
 
 // Your code here
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${crypto.randomBytes(4).toString("hex")}${ext}`);
+  },
+});
+
+const limits = { fileSize: 5 * 1024 * 1024 };
+const fileFilter = (req, file, cb) => {
+  if (["image/jpeg", "image/png", "image/gif"].includes(file.mimetype)) {
+    return cb(null, true);
+  }
+  return cb(
+    new Error("Invalid file type. Only JPEG, PNG, and GIF are allowed."),
+    false,
+  );
+};
+
+export const upload = multer({ storage, fileFilter, limits });

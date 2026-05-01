@@ -1,10 +1,11 @@
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import imageRoutes from './routes/image.routes.js';
-import { errorHandler } from './middlewares/error.middleware.js';
-import { notFound } from './middlewares/notFound.middleware.js';
+import express from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import imageRoutes from "./routes/image.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import { notFound } from "./middlewares/notFound.middleware.js";
+import { ok } from "assert";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,4 +26,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  */
 export function createApp() {
   // Your code here
+  const app = express();
+  app.use(express.json());
+
+  const uploadPath = path.join(__dirname, "..", "uploads");
+  const thumbnailPath = path.join(uploadPath, "thumbnails");
+  fs.mkdirSync(thumbnailPath, { recursive: true });
+
+  app.get("/health", (req, res) => res.status(200).json({ ok: true }));
+  app.use("/api/images", imageRoutes);
+  app.use("*", notFound);
+  app.use(errorHandler);
+  return app;
 }
